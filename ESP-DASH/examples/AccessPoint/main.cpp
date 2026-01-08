@@ -38,21 +38,22 @@
 
 
 /* Your SoftAP WiFi Credentials */
-const char* ssid = ""; // SSID
-const char* password = ""; // Password
+const char* ssid = "Leon"; // SSID
+const char* password = "12345678"; // Password
 
 /* Start Webserver */
 AsyncWebServer server(80);
 
 /* Attach ESP-DASH to AsyncWebServer */
 ESPDash dashboard(server);
+float readTemp(void);
 
 /* 
   Dashboard Cards 
   Format - (Dashboard Instance, Card Type, Card Name, Card Symbol(optional) )
 */
 dash::TemperatureCard temperature(dashboard, "Temperature");
-dash::HumidityCard humidity(dashboard, "Humidity");
+//dash::HumidityCard humidity(dashboard, "Humidity");
 
 
 void setup() {
@@ -71,8 +72,8 @@ void setup() {
 
 void loop() {
   /* Update Card Values */
-  temperature.setValue((int)random(0, 50));
-  humidity.setValue((int)random(0, 100));
+  temperature.setValue(readTemp());
+  //humidity.setValue((int)random(0, 100));
 
   /* Send Updates to our Dashboard (realtime) */
   dashboard.sendUpdates();
@@ -81,5 +82,26 @@ void loop() {
     Delay is just for demonstration purposes in this example,
     Replace this code with 'millis interval' in your final project.
   */
+
+ Serial.println(readTemp());
   delay(3000);
+}
+
+float readTemp(void)
+{
+  float average = 0;
+  for (uint8_t i = 0; i < 10; i++)
+  {
+    average += analogRead(12);
+    delay(10);
+  }
+  average /= 10;
+  Serial.println(analogRead(12));
+  average = 10000 * (4095 / average - 1);
+  // Steinhart–Hart equation, based on https://learn.adafruit.com/thermistor/using-a-thermistor
+  float steinhart = (log(average / 10000)) / 3950;
+  steinhart += 1.0 / (25 + 273.15);
+  steinhart = 1.0 / steinhart; // invert
+  steinhart -= 273.15;         // convert to celsius
+  return steinhart;
 }
