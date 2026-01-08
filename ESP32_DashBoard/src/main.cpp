@@ -1,6 +1,4 @@
 #include <Arduino.h>
-#include <SmoothThermistor.h>
-SmoothThermistor smoothThermistor(12);
 float readTemp(void);
 
 void setup()
@@ -24,10 +22,8 @@ float readTemp(void)
   }
   average /= 10;
   average = 10000 * (4095 / average - 1);
-  Serial.println(average);
   // Steinhart–Hart equation, based on https://learn.adafruit.com/thermistor/using-a-thermistor
   float steinhart = (log(average / 10000)) / 3950;
-  Serial.println(steinhart);
   steinhart += 1.0 / (25 + 273.15);
   steinhart = 1.0 / steinhart; // invert
   steinhart -= 273.15;         // convert to celsius
